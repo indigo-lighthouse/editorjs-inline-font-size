@@ -4,7 +4,7 @@ function injectStyles(css) {
   document.head.appendChild(style)
 }
 
-const css = `
+let css = `
 .ce-inline-tool.ce-inline-tool--font {
   display: flex;
 }
@@ -33,35 +33,17 @@ const css = `
 .ce-inline-tool .selectionList .selection-list-wrapper .selection-list-option:hover {
   background-color: #eff2f5;
 }
-
-.editorjs-inline-font-size-1 {
-  font-size: 10px;
-}
-
-.editorjs-inline-font-size-2 {
-  font-size: 13px;
-}
-
-.editorjs-inline-font-size-3 {
-  font-size: 16px;
-}
-
-.editorjs-inline-font-size-4 {
-  font-size: 18px;
-}
-
-.editorjs-inline-font-size-5 {
-  font-size: 24px;
-}
-
-.editorjs-inline-font-size-6 {
-  font-size: 32px;
-}
-
-.editorjs-inline-font-size-7 {
-  font-size: 48px;
-}
 `
+
+const fontSizes = [10, 13, 16, 18, 24, 32, 48]
+
+for (const size of fontSizes) {
+  css += `
+    .editorjs-inline-font-size-${size} {
+      font-size: ${size}px;
+    }
+  `
+}
 
 injectStyles(css)
 
@@ -135,27 +117,18 @@ class FontSizeTool {
   }
 
   addFontSizeOptions() {
-    const fontSizeList = [
-      { label: '10', value: '1' },
-      { label: '13', value: '2' },
-      { label: '16', value: '3' },
-      { label: '18', value: '4' },
-      { label: '24', value: '5' },
-      { label: '32', value: '6' },
-      { label: '48', value: '7' }
-    ]
     this.selectionList = this.make('div', 'selectionList')
     const selectionListWrapper = this.make('div', 'selection-list-wrapper')
 
-    for (const fontSize of fontSizeList) {
+    for (const fontSize of fontSizes) {
       const option = this.make('div')
-      option.setAttribute('value', fontSize.value)
-      option.setAttribute('id', fontSize.value)
+      option.setAttribute('value', fontSize)
+      option.setAttribute('id', fontSize)
       option.classList.add('selection-list-option')
-      if ((this.nodes.button.querySelector('#' + this.fontSizeDropDown).innerHTML === fontSize.label) || (this.selectedFontSize === fontSize.value)) {
+      if ((this.nodes.button.querySelector('#' + this.fontSizeDropDown).innerHTML === fontSize) || (this.selectedFontSize === fontSize)) {
         option.classList.add('selection-list-option-active')
       }
-      option.innerHTML = fontSize.label
+      option.innerHTML = fontSize
       selectionListWrapper.append(option)
     }
     this.selectionList.append(selectionListWrapper)
@@ -230,14 +203,14 @@ class FontSizeTool {
       if (wrapNode) {
         this.unwrap(range, wrapNode)
       } else {
-        [...Array(6)].forEach((_, n) => {
-          const cssClass = `editorjs-inline-font-size-${n + 1}`
+        for (const size of fontSizes) {
+          const cssClass = `editorjs-inline-font-size-${size}`
           const wrapNode = this.#findWrapNode(cssClass)
 
           if (wrapNode) {
             this.unwrap(range, wrapNode)
           }
-        })
+        }
 
         this.wrap(range, cssClass)
       }
@@ -292,30 +265,32 @@ class FontSizeTool {
     sel.addRange(range);
   }
 
-  getComputedFontStyle(node) {
-    return window.getComputedStyle(node.parentElement, null).getPropertyValue('font-size')
+  #getComputedFontStyle(node) {
+    return window.getComputedStyle(node, null).getPropertyValue('font-size')
   }
 
   checkState(selection) {
-    let anchoredElementFontSize = this.getComputedFontStyle(selection.anchorNode)
-    const focusedElementFontSize = this.getComputedFontStyle(selection.focusNode)
+    const { anchorNode, focusNode } = selection
+    const range = selection.getRangeAt(0)
+    let computedFontSize = this.emptyString
 
-    if (anchoredElementFontSize === focusedElementFontSize) {
-      anchoredElementFontSize = anchoredElementFontSize.slice(0, anchoredElementFontSize.indexOf('p'))
-      const elementContainsDecimalValue = anchoredElementFontSize.indexOf('.')
-      if (elementContainsDecimalValue !== -1) {
-        anchoredElementFontSize = anchoredElementFontSize.slice(0, anchoredElementFontSize.indexOf('.'))
+    // text is selected within another text
+    if (anchorNode === focusNode) {
+      computedFontSize = this.#getComputedFontStyle(anchorNode.parentNode)
+
+    // an element is selected (e.g. double click on a word that has different font size than its surroundings)
+    } else if (anchorNode.length === range.startOffset && range.endOffset === 0) {
+      const selectedNode = anchorNode.nextSibling
+
+      if (selectedNode.nodeType === Node.TEXT_NODE) {
+        computedFontSize = this.#getComputedFontStyle(selectedNode.parentElement)
+      } else {
+        computedFontSize = this.#getComputedFontStyle(selectedNode)
       }
-      this.replaceFontSizeInWrapper(anchoredElementFontSize)
     }
-    else {
-      this.replaceFontSizeInWrapper(this.emptyString)
-    }
-  }
 
-  replaceFontSizeInWrapper(size) {
     const displaySelectedFontSize = this.nodes.button.querySelector('#' + this.fontSizeDropDown)
-    displaySelectedFontSize.innerHTML = size
+    displaySelectedFontSize.innerHTML = computedFontSize.replace('px', '')
   }
 
   clear() {
