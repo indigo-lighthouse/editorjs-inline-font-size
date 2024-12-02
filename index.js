@@ -50,7 +50,6 @@ injectStyles(css)
 class FontSizeTool {
   static title = 'Font Size'
   isDropDownOpen = false
-  togglingCallback = null
   emptyString = '&nbsp&nbsp'
   fontSizeDropDown = 'font-size-dropdown'
 
@@ -133,54 +132,39 @@ class FontSizeTool {
     }
     this.selectionList.append(selectionListWrapper)
     this.nodes.button.append(this.selectionList)
-    this.selectionList.addEventListener('click', this.toggleFontSizeSelector)
-
-    setTimeout(() => {
-      if (typeof this.togglingCallback === 'function') {
-        this.togglingCallback(true)
-      }
-    }, 50)
+    this.selectionList.addEventListener('click', this.toggleFontSizeSelector.bind(this))
   }
 
-  toggleFontSizeSelector = (event) => {
+  toggleFontSizeSelector(event) {
     this.selectedFontSize = event.target.id
     this.toggle()
   }
 
   removeFontSizeOptions() {
     if (this.selectionList) {
-      this.isDropDownOpen = false
       this.selectionList = this.selectionList.remove()
-    }
-    if (typeof this.togglingCallback === 'function') {
-      this.togglingCallback(false)
     }
   }
 
   render() {
     this.createButton()
-    this.nodes.button.addEventListener('click', this.toggleDropDown)
+    this.nodes.button.addEventListener('click', this.toggleDropDown.bind(this))
     return this.nodes.button
   }
 
-  toggleDropDown = ($event) => {
-    if ((($event.target).id === this.fontSizeDropDown || $event.target.parentNode.id === 'fontSizeBtn' || $event.target.id === 'fontSizeBtn')) {
-      this.toggle((toolbarOpened) => {
-        if (toolbarOpened) {
-          this.isDropDownOpen = true
-        }
-      })
+  toggleDropDown(event) {
+    if (((event.target).id === this.fontSizeDropDown || event.target.parentNode.id === 'fontSizeBtn' || event.target.id === 'fontSizeBtn')) {
+      this.toggle()
     }
   }
 
-  toggle(togglingCallback) {
-    if (!this.isDropDownOpen && togglingCallback) {
+  toggle() {
+    if (!this.isDropDownOpen) {
+      this.isDropDownOpen = true
       this.addFontSizeOptions()
     } else {
+      this.isDropDownOpen = false
       this.removeFontSizeOptions()
-    }
-    if (typeof togglingCallback === 'function') {
-      this.togglingCallback = togglingCallback
     }
   }
 
