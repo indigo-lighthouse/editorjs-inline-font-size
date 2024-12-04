@@ -1,4 +1,4 @@
-![](https://badgen.net/badge/Editor.js/v2.0/blue)
+![](https://badgen.net/badge/Editor.js/v2.0/blue) [![Node.js CI](https://github.com/indigo-lighthouse/editorjs-inline-font-size/actions/workflows/node.js.yml/badge.svg)](https://github.com/indigo-lighthouse/editorjs-inline-font-size/actions/workflows/node.js.yml)
 
 # Font Size tool
 
