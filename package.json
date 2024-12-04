@@ -14,5 +14,12 @@
   "author": {
     "name": "Arwaz",
     "email": "arwaz.jamal@codinova.com"
+  },
+  "dependencies": {
+    "@editorjs/editorjs": "^2.30.7",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/user-event": "^14.5.2",
+    "electron": "^33.2.1",
+    "electron-mocha": "^13.0.1"
   }
 }

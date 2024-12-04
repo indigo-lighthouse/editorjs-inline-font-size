@@ -5,6 +5,10 @@ function injectStyles(css) {
 }
 
 let css = `
+.ce-popover--inline .ce-popover__container {
+  overflow: visible;
+}
+
 .ce-inline-tool.ce-inline-tool--font {
   display: flex;
 }
@@ -122,7 +126,6 @@ class FontSizeTool {
     for (const fontSize of fontSizes) {
       const option = this.make('div')
       option.setAttribute('value', fontSize)
-      option.setAttribute('id', fontSize)
       option.classList.add('selection-list-option')
       if ((this.nodes.button.querySelector('#' + this.fontSizeDropDown).innerHTML === fontSize) || (this.selectedFontSize === fontSize)) {
         option.classList.add('selection-list-option-active')
@@ -136,7 +139,7 @@ class FontSizeTool {
   }
 
   toggleFontSizeSelector(event) {
-    this.selectedFontSize = event.target.id
+    this.selectedFontSize = event.target.innerHTML
     this.toggle()
   }
 
@@ -250,7 +253,11 @@ class FontSizeTool {
   }
 
   #getComputedFontStyle(node) {
-    return window.getComputedStyle(node, null).getPropertyValue('font-size')
+    if (node.nodeType === Node.TEXT_NODE) {
+      return window.getComputedStyle(node.parentNode, null).getPropertyValue('font-size')
+    } else {
+      return window.getComputedStyle(node, null).getPropertyValue('font-size')
+    }
   }
 
   checkState(selection) {
@@ -260,21 +267,17 @@ class FontSizeTool {
 
     // text is selected within another text
     if (anchorNode === focusNode) {
-      computedFontSize = this.#getComputedFontStyle(anchorNode.parentNode)
+      computedFontSize = this.#getComputedFontStyle(anchorNode)
 
     // an element is selected (e.g. double click on a word that has different font size than its surroundings)
     } else if (anchorNode.length === range.startOffset && range.endOffset === 0) {
       const selectedNode = anchorNode.nextSibling
 
-      if (selectedNode.nodeType === Node.TEXT_NODE) {
-        computedFontSize = this.#getComputedFontStyle(selectedNode.parentElement)
-      } else {
-        computedFontSize = this.#getComputedFontStyle(selectedNode)
-      }
+      computedFontSize = this.#getComputedFontStyle(selectedNode)
     }
 
     const displaySelectedFontSize = this.nodes.button.querySelector('#' + this.fontSizeDropDown)
-    displaySelectedFontSize.innerHTML = computedFontSize.replace('px', '')
+    displaySelectedFontSize.innerHTML = computedFontSize.replace(/(\.\d*)?px/, '')
   }
 
   clear() {
