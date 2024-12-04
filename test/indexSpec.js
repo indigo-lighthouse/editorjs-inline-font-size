@@ -5,7 +5,6 @@ const { page } = require('./testHelper.js')
 const EditorJS = require('@editorjs/editorjs')
 const FontSizeTool = require('../index.js')
 
-
 function selectWord() {
   const range = document.createRange()
   const paragraph = document.querySelector('.ce-paragraph')
@@ -19,12 +18,26 @@ function selectWord() {
 
 describe('editorjs-inline-font-size', function() {
   beforeEach(async function() {
-    document.body.innerHTML = '<div id="editorjs"></div>'
+    document.body.innerHTML = '<style>.u-font24 { font-size: 24px; }</style><div id="editorjs"></div>'
 
     this.editor = new EditorJS({
       holder: 'editorjs',
       tools: {
-        fontSize: FontSizeTool,
+        fontSize: {
+          class: FontSizeTool,
+          config: {
+            fontSizes: [
+              {
+                cssClass: 'u-font16',
+                buttonText: '16',
+              },
+              {
+                cssClass: 'u-font24',
+                buttonText: '24',
+              }
+            ]
+          },
+        }
       },
       data: {
         blocks: [
@@ -32,7 +45,7 @@ describe('editorjs-inline-font-size', function() {
             id: 1,
             type: 'paragraph',
             data: {
-              text: 'test bananas go <span class="editorjs-inline-font-size-32">wild</span>!',
+              text: 'test bananas go wild',
             },
           },
         ],
@@ -46,7 +59,7 @@ describe('editorjs-inline-font-size', function() {
 
   it('changes font size of selected text', async function() {
     // Given there is no text with size 24
-    assert.ok(!document.querySelector('.editorjs-inline-font-size-24'))
+    assert.ok(!document.querySelector('.u-font24'))
 
     // When I select a word
     selectWord()
@@ -58,9 +71,8 @@ describe('editorjs-inline-font-size', function() {
     fireEvent.click(await page.findByText('24'))
 
     // Then the selected text size becomes 24
-    const affectedNode = await page.findByCssSelector('.editorjs-inline-font-size-24')
+    const affectedNode = await page.findByCssSelector('.u-font24')
     assert.equal(affectedNode.innerText, 'bananas')
-    assert.equal(window.getComputedStyle(affectedNode, null).getPropertyValue('font-size'), '24px')
 
     // And the font size icon shows current font size 24
     assert.equal((await page.findByCssSelector('#fontSizeBtn')).innerText, '24')

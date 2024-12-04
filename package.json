@@ -15,6 +15,9 @@
     "name": "Arwaz",
     "email": "arwaz.jamal@codinova.com"
   },
+  "scripts": {
+    "test": "electron-mocha --renderer --color --no-timeouts --require-main=./test-electron-main.js"
+  },
   "dependencies": {
     "@editorjs/editorjs": "^2.30.7",
     "@testing-library/dom": "^10.4.0",

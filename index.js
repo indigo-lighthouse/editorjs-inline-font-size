@@ -39,16 +39,6 @@ let css = `
 }
 `
 
-const fontSizes = [10, 13, 16, 18, 24, 32, 48]
-
-for (const size of fontSizes) {
-  css += `
-    .editorjs-inline-font-size-${size} {
-      font-size: ${size}px;
-    }
-  `
-}
-
 injectStyles(css)
 
 class FontSizeTool {
@@ -88,8 +78,9 @@ class FontSizeTool {
 
   tag = 'SPAN'
 
-  constructor({ api }) {
+  constructor({ api, config }) {
     this.api = api
+    this.config = config
   }
 
   make(tagName, classNames = null) {
@@ -123,14 +114,14 @@ class FontSizeTool {
     this.selectionList = this.make('div', 'selectionList')
     const selectionListWrapper = this.make('div', 'selection-list-wrapper')
 
-    for (const fontSize of fontSizes) {
-      const option = this.make('div')
-      option.setAttribute('value', fontSize)
+    for (const { cssClass, buttonText } of this.config.fontSizes) {
+      const option = this.make('option')
+      option.setAttribute('value', cssClass)
       option.classList.add('selection-list-option')
-      if ((this.nodes.button.querySelector('#' + this.fontSizeDropDown).innerHTML === fontSize) || (this.selectedFontSize === fontSize)) {
+      if ((this.nodes.button.querySelector('#' + this.fontSizeDropDown).innerHTML === buttonText) || (this.selectedFontSize === cssClass)) {
         option.classList.add('selection-list-option-active')
       }
-      option.innerHTML = fontSize
+      option.innerHTML = buttonText
       selectionListWrapper.append(option)
     }
     this.selectionList.append(selectionListWrapper)
@@ -139,7 +130,7 @@ class FontSizeTool {
   }
 
   toggleFontSizeSelector(event) {
-    this.selectedFontSize = event.target.innerHTML
+    this.selectedFontSize = event.target.value
     this.toggle()
   }
 
@@ -183,15 +174,14 @@ class FontSizeTool {
 
   surround(range) {
     if (range && this.selectedFontSize) {
-      const cssClass = `editorjs-inline-font-size-${this.selectedFontSize}`
+      const cssClass = this.selectedFontSize
 
       const wrapNode = this.#findWrapNode(cssClass)
 
       if (wrapNode) {
         this.unwrap(range, wrapNode)
       } else {
-        for (const size of fontSizes) {
-          const cssClass = `editorjs-inline-font-size-${size}`
+        for (const { cssClass } of this.config.fontSizes) {
           const wrapNode = this.#findWrapNode(cssClass)
 
           if (wrapNode) {
@@ -220,9 +210,10 @@ class FontSizeTool {
   #removeEnclosedFontSizeTags(range) {
     const fragment = document.createDocumentFragment()
     const rangeContents = range.extractContents()
+    const fontSizeClasses = this.config.fontSizes.map(({ cssClass }) => cssClass)
 
     Array.from(rangeContents.childNodes).forEach((node) => {
-      if (node.nodeType === Node.ELEMENT_NODE && node.className.match(/^editorjs-inline-font-size-/)) {
+      if (node.nodeType === Node.ELEMENT_NODE && fontSizeClasses.includes(node.className)) {
         while (node.firstChild) {
           // appendChild also removes node.firstChild, so that the next iteration points to the next child.
           fragment.appendChild(node.firstChild)

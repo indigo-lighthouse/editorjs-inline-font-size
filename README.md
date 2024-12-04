@@ -14,22 +14,30 @@ npm add github:indigo-lighthouse/editorjs-inline-font-size
 
 ## Usage
 
-Include module in your application
+Add a new Tool to the `tools` property of the Editor.js initial config.
+
+The specified `cssClass` classes need to be defined somewhere in your CSS for the text to actually change size.
 
 ```javascript
 const FontSizeTool = require('editorjs-inline-font-size-tool');
-```
 
-Add a new Tool to the `tools` property of the Editor.js initial config.
-
-```javascript
 const editor = EditorJS({
-  ...
-  
   tools: {
-    ...
-    fontSize: FontSizeTool
+    fontSize: {
+      class: FontSizeTool,
+      config: {
+        fontSizes: [
+          {
+            cssClass: 'u-font16',
+            buttonText: '16',
+          },
+          {
+            cssClass: 'u-font24',
+            buttonText: '24',
+          }
+        ]
+      },
+    }
   }
-  ...
 });
 ```
